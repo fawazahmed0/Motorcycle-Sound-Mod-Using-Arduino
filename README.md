@@ -40,7 +40,7 @@ comment the following lines
 
     //SAMPLE_RATE = sFile.read();
  
-    /SAMPLE_RATE = sFile.read() << 8 | SAMPLE_RATE;
+    //SAMPLE_RATE = sFile.read() << 8 | SAMPLE_RATE;
 and add the following
 
     orgsamplerate = sFile.read();
