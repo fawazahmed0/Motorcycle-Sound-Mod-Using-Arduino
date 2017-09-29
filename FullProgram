@@ -1,0 +1,280 @@
+
+
+#include <SPI.h>
+#include <SD.h>
+#define SD_ChipSelectPin 53
+#include "TMRpcm.h"
+
+
+
+//  use more minutes sound to avoid tmrpcm.loop breaks
+TMRpcm tmrpcm;
+ float getsamplerate(char* namefile);
+void playsound();
+// keep basefreq half of original samplerate,to see frequency change effect
+
+char* filename = "SPORTSTERCRANK.WAV";
+ int vol=0 ,basevol = 2,highval =7 ;
+ float basefreq;
+// double timefactor;
+byte btt;
+
+double x=0,lastz=0,z=0;
+
+enum PinAssignments {
+  encoderPinA = 2,   // right
+  encoderPinB = 3,   // left
+  clearButton = 8    // another two pins
+};
+
+volatile unsigned int encoderPos = 0;  // a counter for the dial
+unsigned int lastReportedPos = 1;   // change management
+static boolean rotating = false;    // debounce management
+
+// interrupt service routine vars
+boolean A_set = false;
+boolean B_set = false;
+
+const int buttonPin = 5;    // the number of the pushbutton pin
+// const int ledPin = 13;      // the number of the LED pin
+
+// Variables will change:
+// int ledState = HIGH;         // the current state of the output pin
+int buttonState;             // the current reading from the input pin
+int lastButtonState = LOW;   // the previous reading from the input pin
+
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
+
+
+File root;
+// String s;
+
+
+void setup(){
+pinMode(buttonPin, INPUT_PULLUP);
+  
+    pinMode(encoderPinA, INPUT_PULLUP);
+  pinMode(encoderPinB, INPUT_PULLUP);
+  pinMode(clearButton, INPUT_PULLUP);
+
+
+  // encoder pin on interrupt 0 (pin 2)
+  attachInterrupt(digitalPinToInterrupt(encoderPinA), doEncoderA, CHANGE);
+  // encoder pin on interrupt 1 (pin 3)
+  attachInterrupt(digitalPinToInterrupt(encoderPinB), doEncoderB, CHANGE);
+
+  
+
+tmrpcm.speakerPin = 11;
+ tmrpcm.speakerPin2 = 12;
+ btt  = B01100000;
+Serial.begin(9600);
+if (!SD.begin(SD_ChipSelectPin)) {
+Serial.println("SD fail");
+return;
+}
+Serial.println("SD initialization success");
+ basefreq = getsamplerate(filename);
+// basefreq = (basefreq * 5)/8;
+// Serial.println(basefreq);
+
+tmrpcm.SAMPLE_RATE = basefreq;
+
+tmrpcm.quality(1); 
+tmrpcm.loop(1);
+tmrpcm.setVolume(basevol);
+
+tmrpcm.play(filename);
+
+root =  SD.open("/");
+
+// tmrpcm.quality(1);
+
+
+}
+
+
+void loop(){
+
+   int reading = digitalRead(buttonPin);
+
+  // check to see if you just pressed the button
+  // (i.e. the input went from LOW to HIGH), and you've waited long enough
+  // since the last press to ignore any noise:
+
+  // If the switch changed, due to noise or pressing:
+  if (reading != lastButtonState) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // only toggle the LED if the new button state is HIGH
+      if (buttonState == LOW) {
+   playsound();
+      }
+    }
+  }
+
+  // set the LED:
+//  digitalWrite(ledPin, ledState);
+
+  // save the reading. Next time through the loop, it'll be the lastButtonState:
+  lastButtonState = reading;
+
+ // read the state of the pushbutton value:
+ 
+// Serial.println(mag);
+// Serial.println("outside");
+  // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+
+
+
+  rotating = true;  // reset the debouncer
+  
+
+  if (digitalRead(clearButton) == LOW )  {
+    encoderPos = 1;
+  }
+
+
+  
+ if (lastReportedPos != encoderPos) {
+    Serial.print("Index:");
+    Serial.println(encoderPos, DEC);
+ lastReportedPos = encoderPos;
+  }
+ 
+
+   //remove the comment,when used with rotatry encoder
+   
+   z= encoderPos;
+
+
+//   z= Serial.parseFloat();
+     
+if(z>0&&z<=highval&&z!=lastz){
+
+  
+ //   lastReportedPos = encoderPos;
+  // map function ,takes value between  0 and 1000 and adjust freq and sound accordingly
+x = map(z,0,highval,basefreq,32000);
+vol = map(z,0,highval,basevol,5);
+tmrpcm.setVolume(vol);
+
+
+// setting sample rate
+ tmrpcm.SAMPLE_RATE = x;
+ // setting resolution
+  if(bitRead(btt,6)){tmrpcm.resolution = 10 * (800000/tmrpcm.SAMPLE_RATE);}
+    else{ tmrpcm.resolution = 10 * (1600000/tmrpcm.SAMPLE_RATE);
+  }
+ 
+  noInterrupts();
+  tmrpcm.timerSt();
+ //timefactor = y/x;
+ interrupts();
+ // currentval/newval
+// timefactor = x/(32000.00/time);
+
+
+
+ // start = millis();
+// currentseektime = seektime;
+  // round(elapsed/1000.00)+prev
+ // prev = prev + round(elapsed/1000.00);
+// con++;
+lastz = z;
+}
+
+
+
+ 
+
+ 
+  }
+
+float getsamplerate(char* namefile){
+
+ tmrpcm.wavInfo(namefile);
+   return tmrpcm.orgsamplerate;
+    }
+
+
+
+
+
+    // Interrupt on A changing state
+void doEncoderA() {
+  // debounce
+  if ( rotating ) delay (1);  // wait a little until the bouncing is done
+
+  // Test transition, did things really change?
+  if ( digitalRead(encoderPinA) != A_set ) { // debounce once more
+    A_set = !A_set;
+
+    // adjust counter + if A leads B
+    if ( A_set && !B_set && encoderPos>0 )
+      encoderPos -= 1;
+
+    rotating = false;  // no more debouncing until loop() hits again
+  }
+}
+
+// Interrupt on B changing state, same as A above
+void doEncoderB() {
+  if ( rotating ) delay (1);
+  if ( digitalRead(encoderPinB) != B_set ) {
+    B_set = !B_set;
+    //  adjust counter - 1 if B leads A
+     if ( B_set && !A_set && encoderPos<highval-1 )
+      encoderPos += 1;
+
+    rotating = false;
+  }
+}
+
+void playsound(){
+  tmrpcm.stopPlayback();
+// Serial.println("inside playsound");
+     File f = root.openNextFile();
+     char* fname;
+     fname = f.name();
+   //  Serial.println(fname);
+ //    char* empty = "";
+ //   s = String(f.name());
+  if(strcmp(fname, "") == 0){
+// Serial.println("empty string");
+
+root.rewindDirectory();
+// s = String(f.name());
+f = root.openNextFile();
+ fname = f.name();
+  
+  }
+  f.close();
+
+        basefreq = getsamplerate(fname);
+// basefreq = (basefreq * 5)/8;
+// Serial.println("abc");
+
+tmrpcm.SAMPLE_RATE = basefreq;
+  
+    tmrpcm.play(fname);
+
+
+
+Serial.println(fname);
+
+  }
