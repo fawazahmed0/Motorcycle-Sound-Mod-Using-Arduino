@@ -1,0 +1,73 @@
+
+#include "SD.h"
+#define SD_ChipSelectPin 53
+#include "TMRpcm.h"
+#include "SPI.h"
+
+//  use more minutes sound to avoid tmrpcm.loop breaks
+TMRpcm tmrpcm;
+
+int vol=0 , basefreq = 16000,basevol = 1;
+// double timefactor;
+byte btt;
+char filename[] = "6.wav";
+double x=0,y=0,z=0;
+
+
+
+
+void setup(){
+
+tmrpcm.speakerPin = 11;
+ tmrpcm.speakerPin2 = 12;
+ btt  = B01100000;
+Serial.begin(9600);
+if (!SD.begin(SD_ChipSelectPin)) {
+Serial.println("SD fail");
+return;
+}
+ 
+
+tmrpcm.SAMPLE_RATE = basefreq;
+tmrpcm.quality(1); 
+tmrpcm.loop(1);
+tmrpcm.setVolume(basevol);
+tmrpcm.play(filename);
+
+
+
+}
+
+void loop(){
+  // reading frequency value from serial
+   z= Serial.parseFloat();
+
+
+     
+if(z!=0&&z<1001){
+  // map function ,takes value between  0 and 1000 and adjust freq and sound accordingly
+x = map(z,0,1000,basefreq,45000);
+vol = map(z,0,1000,basevol,5);
+tmrpcm.setVolume(vol);
+
+
+// setting sample rate
+ tmrpcm.SAMPLE_RATE = x;
+ // setting resolution
+  if(bitRead(btt,6)){tmrpcm.resolution = 10 * (800000/tmrpcm.SAMPLE_RATE);}
+    else{ tmrpcm.resolution = 10 * (1600000/tmrpcm.SAMPLE_RATE);
+  }
+ 
+ noInterrupts();
+  tmrpcm.timerSt();
+ //timefactor = y/x;
+ interrupts();
+ // currentval/newval
+// timefactor = x/(32000.00/time);
+
+
+
+
+}
+ 
+  }
