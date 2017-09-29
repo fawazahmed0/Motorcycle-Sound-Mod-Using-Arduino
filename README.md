@@ -4,11 +4,14 @@ You can see how it works from the link below:
 https://www.youtube.com/watch?v=q3Sr57Ecp1U
 
 I am using TMRpcm sound library to achieve this.
-you have to do some modifications in this library,these are the things you have to modify:
-Refer
 
-https://github.com/TMRh20/TMRpcm
+Refer:
+
+`https://github.com/TMRh20/TMRpcm`
 https://github.com/TMRh20/TMRpcm/wiki
+
+you have to do some modifications in this library,these are the things you have to modify to allow frequency change:
+
 
 Edits to be done in library files
 
