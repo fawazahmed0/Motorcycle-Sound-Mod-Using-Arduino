@@ -1,4 +1,6 @@
-# Motorcycle-Sound-mod-using-arduino
+# Motorcycle-Sound-Mod-Using-Arduino
+
+I always wanted to create a prototype using arduino, which can be attached to any motorcycle and it will produce harley like sound using speakers
 
 You can see how it works from the link below:
  https://www.youtube.com/watch?v=q3Sr57Ecp1U
@@ -54,7 +56,7 @@ I have uploaded the modified files also.
 
 
 
-My Arduino Program is increasing the pitch and at the same time volume of bike sound file. This gives us the effect of a motorcycle.
+My Arduino Program is increasing the pitch and at the same time volume of bike sound file. This gives us the effect of a motorcycle. Use the program in Arduino IDE
 
 Program is based on Arduino Mega, you can also use this program in other boards ,by doing some modifications.
 
