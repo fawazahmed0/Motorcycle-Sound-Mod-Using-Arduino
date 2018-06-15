@@ -3,7 +3,9 @@
 I always wanted to create a prototype using arduino, which can be attached to any motorcycle and it will produce harley like sound using speakers when raising accelerator
 
 You can see how it works from the link below:
- https://www.youtube.com/watch?v=q3Sr57Ecp1U
+ 
+ [![Youtube Video Link](https://img.youtube.com/vi/q3Sr57Ecp1U/0.jpg)](https://www.youtube.com/watch?v=q3Sr57Ecp1U)
+ 
 
 I am using TMRpcm sound library to achieve this.
 
